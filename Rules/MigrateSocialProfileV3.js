@@ -80,7 +80,12 @@ async function migrateSocialProfile(user, context, callback) {
         const response = await srcclient.getUser(user.user_id);
         if (debug) console.log("Returned from search");  
         if (debug) console.log("response from getSrcUser: ", response); 
-        return response;
+        if (response.length > 0) {
+          // search by id should return one user at the most
+          return response[0];
+        } else {
+          return null;
+        }
   
       } catch (e) {
         console.log(e);
@@ -148,11 +153,11 @@ async function migrateSocialProfile(user, context, callback) {
         user.user_metadata = currentMetadata.user_metadata;
         user.app_metadata = currentMetadata.app_metadata;
         return callback(null, user, context);
-      } else {
-        if (debug) console.log("Updating metadata from source user");
+      } else if (src_user){
+        if (debug) console.log("Updating metadata from source user", src_user);
         let metaData = {
-          "app_metadata": { ...src_user[0].app_metadata, auth0_internal_social_migrated: true },
-          "user_metadata": { ...src_user[0].user_metadata }
+          "app_metadata": { ...src_user.app_metadata, auth0_internal_social_migrated: true },
+          "user_metadata": { ...src_user.user_metadata }
         };
         await client.updateUser({id: user.user_id}, metaData);
         return callback(null, user, context);
