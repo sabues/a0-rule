@@ -13,7 +13,7 @@ const debug = true;
 
 exports.onExecutePostLogin = async (event, api) => {
   // only executes for this social connection's list and users without auth0_internal_social_migrated : true
-  if ((['google-oauth2'].indexOf(event.connection.strategy) == -1) || (event.user.app_metadata.auth0_internal_social_migrated)) {
+  if ((['google-oauth2'].indexOf(event.connection.strategy) === -1) || (event.user.app_metadata.auth0_internal_social_migrated)) {
     if (debug) console.log("strategy: ", event.connection.strategy, ". Is migrated? : ",event.user.app_metadata.auth0_internal_social_migrated);
     return;
   }
