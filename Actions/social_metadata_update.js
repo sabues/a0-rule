@@ -9,11 +9,12 @@
 */
 
 const axios = require('axios');
+const debug = true;
 
 exports.onExecutePostLogin = async (event, api) => {
   // only executes for this social connection's list and users without auth0_internal_social_migrated : true
-  if ((['google-oauth2'].indexOf(event.connection.strategy) != -1) && (event.user.app_metadata.auth0_internal_social_migrated)) {
-    console.log("auth0_internal: ", event.user.app_metadata.auth0_internal_social_migrated);
+  if ((['google-oauth2'].indexOf(event.connection.strategy) == -1) || (event.user.app_metadata.auth0_internal_social_migrated)) {
+    if (debug) console.log("strategy: ", event.connection.strategy, ". Is migrated? : ",event.user.app_metadata.auth0_internal_social_migrated);
     return;
   }
   const tokenOptions = {
@@ -40,7 +41,7 @@ exports.onExecutePostLogin = async (event, api) => {
   };
 
   const src_user = await axios.request(usersOptions);
-  console.log('Source User Metadata: ', src_user.data.user_metadata);
+  if (debug) console.log('Source User Metadata: ', src_user.data.user_metadata);
   // Update local user's app metadata here
   for (var key in src_user.data.app_metadata){
     api.user.setUserMetadata(key, src_user.data.app_metadata[key]);
