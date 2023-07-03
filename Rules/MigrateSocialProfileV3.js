@@ -142,11 +142,13 @@ async function migrateSocialProfile(user, context, callback) {
       const src_user = await getSrcUser();
   
       if (!identity && !src_user) {
+        // User not found in shadow database, nor in source tenant
         if (debug) console.log('Must be a new user, no user found in old DB nor in source tenant');
         user.app_metadata.auth0_internal_social_migrated = true;
         await client.updateAppMetadata({ id: user.user_id }, user.app_metadata);
         return callback(null, user, context);
       } else if (identity) {
+        // User found in shadow database
         if (debug) console.log("Found matching user");
         const currentMetadata = await linkAccounts(identity);
          //set updated metadata on user so it's accessible in subsequent rules
@@ -154,6 +156,7 @@ async function migrateSocialProfile(user, context, callback) {
         user.app_metadata = currentMetadata.app_metadata;
         return callback(null, user, context);
       } else if (src_user){
+        // User found in source tenant but not in shadow database. Update app_metadata and user_metadata from source user
         if (debug) console.log("Updating metadata from source user", src_user);
         let metaData = {
           "app_metadata": { ...src_user.app_metadata, auth0_internal_social_migrated: true },
